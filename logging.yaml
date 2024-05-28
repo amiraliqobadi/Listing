@@ -1,0 +1,24 @@
+version: 1
+disable_existing_loggers: false
+formatters:
+  formatter:
+    format: 'Time: %(asctime)s - Level: %(levelname)s - LoggerName: %(name)s - Message: %(message)s"
+'
+  formatter_with_line_no:
+    format: 'Time: %(asctime)s - Level: %(levelname)s - LoggerName: %(name)s - LineNumber: %(lineno)s - Message: %(message)s'
+handlers:
+  consoleHandler:
+    class: logging.StreamHandler
+    level: DEBUG
+    formatter: formatter_with_line_no
+    stream: ext://sys.stdout
+  fileHandler:
+    class: logging.FileHandler
+    level: INFO
+    formatter: formatter
+    filename: application.log
+loggers:
+  root:
+    level: DEBUG
+    handlers: [consoleHandler,fileHandler]
+    propagate: no
