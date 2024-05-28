@@ -28,12 +28,7 @@ class Listing(Base):
     UpdatedAt = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
 
 
-class RequestCount(Base):
-    __tablename__ = "request_counts"
-    id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey("User.id"))
-    count = Column(Integer, nullable=True)
-    banned_time = Column(DateTime, nullable=True)
+
 
 
     

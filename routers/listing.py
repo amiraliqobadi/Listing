@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from starlette import status
 from models import User, Listing
-from database import engine, SessionLocal
 from typing import Annotated
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, Field
@@ -10,24 +9,13 @@ from typing import Literal
 from .auth import get_current_user
 from fastapi.encoders import jsonable_encoder
 from routers.auth import limiter
+from database import get_db
+
 
 router = APIRouter(
 	prefix='/listing',
 	tags=['listing']
 )
-
-
-
-def get_db():
-	"""
-	A function that returns a database session.
-	It yields the database session and
-	"""
-	db = SessionLocal()
-	try:
-		yield db
-	finally:
-		db.close()
 
 
 db_dependency = Annotated[Session, Depends(get_db)]

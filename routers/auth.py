@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 from typing import Literal
 from starlette import status
 from sqlalchemy.orm import Session
-from database import SessionLocal
-from models import User, RequestCount
+from database import get_db
+from models import User
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from typing import Optional, Dict
@@ -13,20 +13,8 @@ from jose import JWTError, jwt
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+
 limiter = Limiter(key_func=get_remote_address)
-
-
-
-def get_db():
-    """
-    A function that returns a database session.
-    It yields the database session and
-    """
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 def validate_password(password: str) -> bool:
