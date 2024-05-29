@@ -1,8 +1,10 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Literal
 from starlette import status
 from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
 from database import get_db
 from models import User
 from passlib.context import CryptContext
@@ -12,7 +14,11 @@ import re
 from jose import JWTError, jwt
 from slowapi import Limiter
 from slowapi.util import get_remote_address
+from datetime import datetime, timedelta
+from redis import Redis
 
+
+redis_conn = Redis()
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -70,8 +76,7 @@ def get_current_user(token: str = Depends(oath2_bearer), db: Session = Depends(g
     
     return {"id": user.id, "username": user.userName}
 
-
-
+    
 
 class CreateUserRequest(BaseModel):
     userName: str
@@ -80,7 +85,6 @@ class CreateUserRequest(BaseModel):
     hashedPassword: str
     DoB: Optional[str] = None
     gender: Optional[Literal['male', 'female', 'NOT_SPECIFIED']] = Field(default='NOT_SPECIFIED')
-
 
 
 def authenticate_user(username: str, password: str, db):
@@ -155,10 +159,6 @@ def create_user(request: Request, create_user_request: CreateUserRequest, db: Se
 @router.post("/access-token")
 @limiter.limit("5/minute")
 def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    """
-    A description of the entire function, its parameters,
-    and its return types.
-    """
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
         raise HTTPException(
@@ -167,24 +167,41 @@ def login_for_access_token(request: Request, form_data: OAuth2PasswordRequestFor
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    existing_session = redis_conn.get(f"user:{user.id}:session")
+    if existing_session:
+        redis_conn.delete(f"session:{existing_session}")
+
+
+    new_session = create_access_token(data={"sub": user.userName, "id": user.id})
+    redis_conn.set(f"user:{user.id}:session", new_session)
+    redis_conn.set(f"session:{new_session}", user.id, ex=3600)
+
     user_dict = user.__dict__
     del user_dict["_sa_instance_state"]
-    access_token = create_access_token(data={"sub": user.userName, "id": user.id})
-    print(f"the user name is {user.userName}")
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": new_session, "token_type": "bearer"}
 
 
-@router.post("/auth/access-token")
-@limiter.limit("5/minute")
-def logout(request: Request):
+
+@router.get("/logout")
+def logout(
+    request: Request,
+    current_user: dict = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """
-    A description of the entire function,
-    its parameters, and its return types.
+    A description of the entire function, its parameters,
+    and its return types.
     """
-    response = HTTPException(
-        status_code=status.HTTP_200_OK,
-        detail="Successfully logged out",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    user = db.query(User).filter(User.id == current_user.get('id')).first()
+    if user is None:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    request.session.clear()
+    response = RedirectResponse(url="/docs#/", status_code=status.HTTP_302_FOUND)
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+
     return response
+
+
 

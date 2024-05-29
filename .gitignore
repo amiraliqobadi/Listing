@@ -1,5 +1,3 @@
-# Created by https://www.toptal.com/developers/gitignore/api/python,pycharm,visualstudiocode,macos
-# Edit at https://www.toptal.com/developers/gitignore?templates=python,pycharm,visualstudiocode,macos
 
 ### macOS ###
 # General
@@ -7,8 +5,8 @@
 .AppleDouble
 .LSOverride
 
-## migrations ##
-
+count.txt
+.venv
 makemigrations
 .idea
 

@@ -3,7 +3,6 @@ from sqlalchemy import Column, Integer, String, DateTime, func, Boolean
 from sqlalchemy import ForeignKey
 
 
-
 class User(Base):
     __tablename__ = 'User'
     id = Column(Integer, primary_key=True, index=True)
@@ -15,8 +14,9 @@ class User(Base):
     gender = Column(String)
     createdAt = Column(DateTime(timezone=True), server_default=func.now())
     UpdatedAt = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=True)
-    
-    
+
+
+
 class Listing(Base):
     __tablename__ = 'Listing'
     id = Column(Integer, primary_key=True, index=True)
@@ -30,5 +30,3 @@ class Listing(Base):
 
 
 
-
-    

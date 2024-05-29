@@ -4,17 +4,22 @@ import yaml
 from fastapi import Request
 from datetime import datetime
 from routers import auth, listing
-from fastapi import FastAPI
 from routers.auth import limiter
-
+from fastapi import FastAPI
+from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 app.state.limiter = limiter
 
+secret_key = "hello"
+
+app.add_middleware(SessionMiddleware, secret_key=secret_key)
+
+
 app.include_router(auth.router)
 app.include_router(listing.router)
 
-# Only accept requests from localhost:3000
+
 origins = [
 	"http://localhost:3000/",
 ]
@@ -27,7 +32,7 @@ app.add_middleware(
 	allow_headers=["*"],
 )
 
-# Logger implementation
+
 logger = logging.getLogger(__name__)
 
 
