@@ -1,5 +1,6 @@
 import uvicorn
 from pathlib import Path
+from create_user_test import run_user_test
 
 
 def get_next_count(file_path):
@@ -28,6 +29,12 @@ def get_next_count(file_path):
 
 if __name__ == "__main__":
     count = get_next_count('count.txt')
+    if count == 0:
+        from database import engine
+        import models
+        models.Base.metadata.create_all(bind=engine)
+        run_user_test()
+    
     uvicorn.run('config:app', host='0.0.0.0', port=3000, reload=True)
     
     

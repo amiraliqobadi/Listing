@@ -7,6 +7,9 @@ from routers import auth, listing, weather
 from routers.auth import limiter
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
+import subprocess
+from fastapi import HTTPException
+
 
 app = FastAPI()
 app.state.limiter = limiter
@@ -55,6 +58,28 @@ with open("logging.yaml", "r") as f:
 	log_cfg = yaml.safe_load(f.read())
 	log_cfg["handlers"]["fileHandler"]["filename"] = "application.log"
 	logging.config.dictConfig(log_cfg)
+
+
+def setup_redis_firewall():
+	ALLOWED_IPS_FILE = 'allowed_ips.txt'
 	
+	with open(ALLOWED_IPS_FILE, 'r') as f:
+		allowed_ips = [line.strip() for line in f.readlines()]
 	
-	
+	# Create the iptables rules
+	for ip in allowed_ips:
+		subprocess.run(['iptables', '-A', 'INPUT', '-p', 'tcp', '--dport', '6379', '-s', ip, '-j', 'ACCEPT'],
+		               check=True)
+		if ip != 'example_ip':
+			raise HTTPException(status_code=400, detail='Invalid IP address')
+
+
+
+@app.middleware("http")
+async def request_middleware(request: Request, call_next):
+	setup_redis_firewall()
+	response = await call_next(request)
+
+	return response
+
+

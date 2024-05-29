@@ -40,7 +40,6 @@ async def read_all(request: Request, user: user_dependency, db: db_dependency):
 	if user is None:
 		raise HTTPException(status_code=401, detail='Authentication Failed')
 	
-	
 	return jsonable_encoder(db.query(Listing).filter(user.get('id') == Listing.ownerId).all())
 
 
