@@ -1,4 +1,3 @@
-import os
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -14,7 +13,6 @@ import re
 from jose import JWTError, jwt
 from slowapi import Limiter
 from slowapi.util import get_remote_address
-from datetime import datetime, timedelta
 from redis import Redis
 
 
