@@ -30,7 +30,7 @@ def get_next_count(file_path):
 
 if __name__ == "__main__":
     count = get_next_count('count.txt')
-    models.Base.metadata.create_all(bind=engine)
+    # models.Base.metadata.create_all(bind=engine)
     uvicorn.run('config:app', host='0.0.0.0', port=3000, reload=True)
     
     

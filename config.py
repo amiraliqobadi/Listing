@@ -3,13 +3,14 @@ import logging.config
 import yaml
 from fastapi import Request
 from datetime import datetime
-from routers import auth, listing
+from routers import auth, listing, weather
 from routers.auth import limiter
 from fastapi import FastAPI
 from starlette.middleware.sessions import SessionMiddleware
 
 app = FastAPI()
 app.state.limiter = limiter
+
 
 secret_key = "hello"
 
@@ -18,6 +19,7 @@ app.add_middleware(SessionMiddleware, secret_key=secret_key)
 
 app.include_router(auth.router)
 app.include_router(listing.router)
+app.include_router(weather.router)
 
 
 origins = [
